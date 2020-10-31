@@ -52,6 +52,16 @@ contract QuadraticBallot {
      * @param voter address of voter
      */
     function assignVoter(address voter) public {
+        require(
+            msg.sender == chairperson,
+            "Only chairperson can assign Voters."
+        );
+        require(
+            !voters[voter].voted,
+            "The voter has already voted."
+        );
+        require(voters[voter].weight == 0);
+        voters[voter].weight = budgetPerPerson;
     }
 
 
@@ -60,6 +70,28 @@ contract QuadraticBallot {
      * @param proposal the credits of each proposal that the voter distributes
      */
     function vote(uint[] memory proposal) public {
+        Voter storage sender = voters[msg.sender];
+
+        //Validate
+        require(proposal.length == proposals.length, "Invalid proposal array Pass Through")
+        require(sender.weight != 0, "Voter has no credit to vote!");
+        require(!sender.voted, "Voter has already voted!");
+
+        uint totalCredits = 0;
+        for (uint proposalIndex = 0; i < proposal.length; proposalIndex++) {
+            totalCredits += proposal[proposalIndex]
+        }
+        require(totalCredits <= sender.weight, "Invalid vote credits!");
+
+        //Mark this sender as voted!
+        sender.voted = true;
+
+        //update proposal vote count here~
+        //update sender's voted list!
+        for (uint proposalIndex = 0; i < proposal.length; proposalIndex++) {
+            sender.vote.push(proposalIndex);
+            proposals[proposalIndex].voteCount += proposal[proposalIndex];
+        }
     }
 
     /** 
@@ -69,7 +101,14 @@ contract QuadraticBallot {
     function winningProposal() public view
             returns (uint winningProposal_)
     {
-     
+        uint maxCount = 0;
+        for (uint p = 0; p < proposals.length; p++){
+            if (proposals[p].voteCount > maxCount) {
+                maxCount = proposals[p].voteCount;
+                winningProposal_ = p;
+            }
+
+        }
     }
 
     /** 
@@ -79,5 +118,6 @@ contract QuadraticBallot {
     function winnerName() public view
             returns (bytes32 winnerName_)
     {
+        winnerName_ = proposals[winningProposal()].name;
     }
 }
