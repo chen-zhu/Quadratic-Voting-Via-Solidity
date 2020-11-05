@@ -61,7 +61,7 @@ contract QuadraticBallot {
             "The voter has already voted."
         );
         require(voters[voter].weight == 0);
-        voters[voter].weight = budgetPerPerson;
+        voters[voter].weight = 1;
     }
 
 
@@ -73,24 +73,23 @@ contract QuadraticBallot {
         Voter storage sender = voters[msg.sender];
 
         //Validate
-        require(proposal.length == proposals.length, "Invalid proposal array Pass Through")
-        require(sender.weight != 0, "Voter has no credit to vote!");
+        require(proposal.length == proposals.length, "Invalid proposal array Pass Through");
+        require(sender.weight != 0, "Voter has no weight to vote!");
         require(!sender.voted, "Voter has already voted!");
 
         uint totalCredits = 0;
-        for (uint proposalIndex = 0; i < proposal.length; proposalIndex++) {
-            totalCredits += proposal[proposalIndex]
+        for (uint proposalIndex = 0; proposalIndex < proposal.length; proposalIndex++) {
+            totalCredits += proposal[proposalIndex] * proposal[proposalIndex];
         }
-        require(totalCredits <= sender.weight, "Invalid vote credits!");
+        require(totalCredits <= budgetPerPerson, "Invalid vote credits!");
 
         //Mark this sender as voted!
         sender.voted = true;
+        sender.vote = proposal;
 
         //update proposal vote count here~
-        //update sender's voted list!
-        for (uint proposalIndex = 0; i < proposal.length; proposalIndex++) {
-            sender.vote.push(proposalIndex);
-            proposals[proposalIndex].voteCount += proposal[proposalIndex];
+        for (uint proposalIndex = 0; proposalIndex < proposal.length; proposalIndex++) {
+            proposals[proposalIndex].voteCount += sender.weight * proposal[proposalIndex];
         }
     }
 
